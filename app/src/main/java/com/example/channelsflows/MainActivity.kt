@@ -10,10 +10,12 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-
 
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -27,29 +29,24 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // Consumer 1
+        // Flow Events
+        // Consumer
         GlobalScope.launch {
-            val data = producer()
-            data.collect{
-                Log.d("FLOW_RESULT_1",it.toString())
-            }
-        }
-
-        // Consumer 2
-        GlobalScope.launch {
-            val data = producer()
-            data.collect{
-                Log.d("FLOW_RESULT_2",it.toString())
-            }
-        }
-
-        // Consumer 3
-        GlobalScope.launch {
-            val data = producer()
-            delay(3000)
-            data.collect{
-                Log.d("FLOW_RESULT_3",it.toString())
-            }
+            producer()
+                .onStart {
+                    emit(0)
+                    Log.d("FLOW_RESULT", "Stream Start")
+                }
+                .onEach {
+                    Log.d("FLOW_RESULT", "About to emit $it")
+                }
+                .onCompletion {
+                    emit(6)
+                    Log.d("FLOW_RESULT", "Stream End")
+                }
+                .collect {
+                    Log.d("FLOW_RESULT", it.toString())
+                }
         }
 
 
@@ -58,7 +55,7 @@ class MainActivity : AppCompatActivity() {
     // Producer
     private fun producer() = flow {
 
-        val list = listOf(1,2,3,4,5)
+        val list = listOf(1, 2, 3, 4, 5)
         list.forEach {
             delay(1000)
             emit(it)
