@@ -10,10 +10,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 
@@ -31,27 +29,23 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // Context Switching
+        // Error Handling
 
-        //  flowOn()
+
         // Consumer
-        GlobalScope.launch(Dispatchers.Main) {  // consumer => Main Thread
-            producer()
-                .flowOn(Dispatchers.Main)      // producer => Main Thread
-                .map {
-                    delay(2000)
-                    Log.d("FLOW_RESULT", "Map Thread - ${Thread.currentThread().name}")
-                    it * 2 + 2
-                }
-                .filter {
-                    delay(1000)
-                    Log.d("FLOW_RESULT", "Filter Thread - ${Thread.currentThread().name}")
-                    it <= 10
-                }
-                .flowOn(Dispatchers.IO)               // filter & map => IO Thread
-                .collect {
-                    Log.d("FLOW_RESULT", "Collector Thread - ${Thread.currentThread().name}")
-                }
+        GlobalScope.launch(Dispatchers.Main) {
+            // This block catch the error of both Consumer and Producer
+            try {
+                producer()
+                    .collect {
+                        Log.d("FLOW_RESULT", "Collector Thread - ${Thread.currentThread().name}")
+                         Log.d("FLOW_RESULT", "Collector Values - $it")
+                    }
+            }
+            catch (e: Exception){
+                Log.d("FLOW_RESULT", e.message.toString())
+            }
+
         }
 
 
@@ -65,9 +59,15 @@ class MainActivity : AppCompatActivity() {
             delay(1000)
             Log.d("FLOW_RESULT", "Emitter Thread - ${Thread.currentThread().name}")
             emit(it)
+            throw Exception ("Emitter Error! Something went wrong")
         }
 
     }
+        // To separately catch the error in Producer
+        .catch {
+            Log.d("FLOW_RESULT", "Emitter Catch - ${it.message}")
+            emit(-1)
+        }
 
 
 }
