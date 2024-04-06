@@ -7,16 +7,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
-    private val channel = Channel<Int>()
 
+
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -27,45 +27,27 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // Produce data for Channel
-        producer()
-
-        // Consume the data produce by Channel
-        consumer()
-    }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun consumer() {
-
+        // Consumer
         GlobalScope.launch {
-
-            val result1 = channel.receive()
-            val result2 = channel.receive()
-            val result3 = channel.receive()
-
-            Log.d("CHANNEL_RESULT", result1.toString())
-            Log.d("CHANNEL_RESULT", result2.toString())        // delay don't effect the values
-            Log.d("CHANNEL_RESULT", result3.toString())
-
-        }
-
-
-
-
-
-    }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun producer() {
-
-        GlobalScope.launch(Dispatchers.Main) {
-            channel.send(1)
-            delay(2000)
-            channel.send(50)
-            delay(4000)
-            channel.send(100)
+            val data = producer()
+            data.collect{
+                Log.d("FLOW_RESULT",it.toString())
+            }
         }
 
 
     }
+
+    // Producer
+    private fun producer() = flow {
+
+        val list = listOf(0,1,2,3,4,5,6,7,8,9,10)
+        list.forEach {
+            delay(1000)
+            emit(it)
+        }
+
+    }
+
+
 }
