@@ -28,11 +28,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Consumer
-        GlobalScope.launch {
+        val job = GlobalScope.launch {
             val data = producer()
             data.collect{
                 Log.d("FLOW_RESULT",it.toString())
             }
+        }
+
+        // cancellation
+        GlobalScope.launch {
+            delay(5200)
+            job.cancel()
         }
 
 
