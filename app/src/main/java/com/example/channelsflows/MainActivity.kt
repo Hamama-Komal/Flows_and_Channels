@@ -9,10 +9,15 @@ import androidx.core.view.WindowInsetsCompat
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlin.system.measureTimeMillis
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,19 +33,56 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // Flow Operators
-        // Consumer
+        // Flow Events
+
+        //  onStart, onEach, onCompletion
+        // Consumer 1
+        GlobalScope.launch {
+            producer()
+                .onStart {
+                    emit(0)
+                    Log.d("FLOW_RESULT_1", "Stream Start")
+
+                }
+                .onEach {
+                    Log.d("FLOW_RESULT_1", "About to emit $it")
+                }
+                .onCompletion {
+                    emit(6)
+                    Log.d("FLOW_RESULT_1", "Stream Ends")
+                }
+                .collect {
+                    Log.d("FLOW_RESULT_1", it.toString())
+                }
+        }
+
+        // buffer
+        // Consumer 2
         GlobalScope.launch {
 
-            // 1) Give the First element
-            val result1 = producer().first()
-            Log.d("FLOW_RESULT", result1.toString())
+            val time = measureTimeMillis {
+                producer().buffer(2).collect {
+                    delay(2000)
+                    Log.d("FLOW_RESULT_2", it.toString())
+                }
+            }
+            Log.d("FLOW_RESULT_2", "Total time consume $time")
+        }
 
-            // 2) Give the whole List
-            val result2 = producer().toList()
-            Log.d("FLOW_RESULT", result2.toString())
 
-
+        // map & filter
+        //  Consumer 3
+        GlobalScope.launch {
+            producer()
+                .map {
+                    it * 2 + 2
+                }
+                .filter {
+                    it <= 10
+                }
+                .collect {
+                    Log.d("FLOW_RESULT_3", it.toString())
+                }
         }
 
 
