@@ -27,18 +27,29 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // Consumer
-        val job = GlobalScope.launch {
+        // Consumer 1
+        GlobalScope.launch {
             val data = producer()
             data.collect{
-                Log.d("FLOW_RESULT",it.toString())
+                Log.d("FLOW_RESULT_1",it.toString())
             }
         }
 
-        // cancellation
+        // Consumer 2
         GlobalScope.launch {
-            delay(5200)
-            job.cancel()
+            val data = producer()
+            data.collect{
+                Log.d("FLOW_RESULT_2",it.toString())
+            }
+        }
+
+        // Consumer 3
+        GlobalScope.launch {
+            val data = producer()
+            delay(3000)
+            data.collect{
+                Log.d("FLOW_RESULT_3",it.toString())
+            }
         }
 
 
@@ -47,7 +58,7 @@ class MainActivity : AppCompatActivity() {
     // Producer
     private fun producer() = flow {
 
-        val list = listOf(0,1,2,3,4,5,6,7,8,9,10)
+        val list = listOf(1,2,3,4,5)
         list.forEach {
             delay(1000)
             emit(it)
