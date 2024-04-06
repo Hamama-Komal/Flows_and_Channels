@@ -9,10 +9,9 @@ import androidx.core.view.WindowInsetsCompat
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -29,24 +28,19 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // Flow Events
+        // Flow Operators
         // Consumer
         GlobalScope.launch {
-            producer()
-                .onStart {
-                    emit(0)
-                    Log.d("FLOW_RESULT", "Stream Start")
-                }
-                .onEach {
-                    Log.d("FLOW_RESULT", "About to emit $it")
-                }
-                .onCompletion {
-                    emit(6)
-                    Log.d("FLOW_RESULT", "Stream End")
-                }
-                .collect {
-                    Log.d("FLOW_RESULT", it.toString())
-                }
+
+            // 1) Give the First element
+            val result1 = producer().first()
+            Log.d("FLOW_RESULT", result1.toString())
+
+            // 2) Give the whole List
+            val result2 = producer().toList()
+            Log.d("FLOW_RESULT", result2.toString())
+
+
         }
 
 
