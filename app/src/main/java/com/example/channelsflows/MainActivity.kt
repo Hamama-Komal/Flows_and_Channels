@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
                 producer()
                     .collect {
                         Log.d("FLOW_RESULT", "Collector Thread - ${Thread.currentThread().name}")
-                         Log.d("FLOW_RESULT", "Collector Values - $it")
+                        Log.d("FLOW_RESULT", "Collector Values - $it")
                     }
             }
             catch (e: Exception){
