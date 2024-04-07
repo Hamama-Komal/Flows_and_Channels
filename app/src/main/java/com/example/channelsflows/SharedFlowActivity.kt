@@ -14,6 +14,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
@@ -33,7 +35,6 @@ class SharedFlowActivity : AppCompatActivity() {
 
         // Shared Flow   (Hot Flow)
 
-
         // Consumer 1
         GlobalScope.launch(Dispatchers.Main) {
             val result = sharedFlowProducer()
@@ -51,11 +52,25 @@ class SharedFlowActivity : AppCompatActivity() {
             }
         }
 
+        // State Flow
+
+        // Consumer
+        GlobalScope.launch(Dispatchers.Main) {
+
+            val result = stateFlowProducer()
+            delay(4000)
+            Log.d("FLOW_RESULT", "Current State of Flow is ${result.value}")
+            /*result.collect{
+                Log.d("FLOW_RESULT", "Current State of Flow is $it")
+            }*/
+        }
+
 
 
 
     }
 
+    // Shared Flow
 
     private fun sharedFlowProducer() : Flow<Int> {
 
@@ -71,5 +86,25 @@ class SharedFlowActivity : AppCompatActivity() {
         }
 
         return mutableSharedFlow
+    }
+
+
+
+
+    // StateFlow
+    fun stateFlowProducer() : StateFlow<Int> {
+
+        val mutableStateFlow  = MutableStateFlow(15)       // replay
+
+        GlobalScope.launch {
+
+            delay(1000)
+            mutableStateFlow.emit(25)
+            delay(2000)
+            mutableStateFlow.emit(50)
+        }
+
+        return mutableStateFlow
+
     }
 }
